@@ -1,0 +1,37 @@
+/Users/harimgemmajung/Library/Python/3.9/lib/python/site-packages/google/api_core/_python_version_support.py:252: FutureWarning: You are using a Python version (3.9.6) past its end of life. Google will update google.api_core with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/harimgemmajung/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/harimgemmajung/Documents/GitHub/g7-project/backend/main.py:410: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+INFO:     Started server process [15839]
+INFO:     Waiting for application startup.
+/Users/harimgemmajung/Documents/GitHub/g7-project/backend/main.py:153: LangChainDeprecationWarning: The class `HuggingFaceEmbeddings` was deprecated in LangChain 0.2.2 and will be removed in 1.0. An updated version of the class exists in the :class:`~langchain-huggingface package and should be used instead. To use it run `pip install -U :class:`~langchain-huggingface` and import as `from :class:`~langchain_huggingface import HuggingFaceEmbeddings``.
+  embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+INFO:     Application startup complete.
+ERROR:    [Errno 48] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+An error occurred: module 'importlib.metadata' has no attribute 'packages_distributions'
+🔄 PDF 로딩 및 태그 분석 시작...
+📄 총 13개 PDF 파일을 로드합니다.
+   👉 로드 성공: R46945.9.pdf -> [국가:Global, 카테고리:Policy]
+   👉 로드 성공: 23194_SNBC-DP-6.pdf -> [국가:France, 카테고리:Policy]
+   👉 로드 성공: Canada's Enhanced NDC Submission1_FINAL EN.pdf -> [국가:Canada, 카테고리:Policy]
+   👉 로드 성공: Canada’s Transition to Net-Zero Emissions.pdf -> [국가:Canada, 카테고리:Climate]
+   👉 로드 성공: Canada's Enhanced NDC Submission1_FINAL EN (1).pdf -> [국가:Canada, 카테고리:Policy]
+   👉 로드 성공: Canada Emission Reduction Plan.pdf -> [국가:Canada, 카테고리:Climate]
+   👉 로드 성공: updating-canada-nationally-determined-contribution.pdf -> [국가:Canada, 카테고리:Policy]
+   👉 로드 성공: strategie_nationale_bas-carbone_de_la_france_-_2050_-_4_pages.pdf -> [국가:France, 카테고리:Climate]
+   👉 로드 성공: Needs Report_African counties_AfDB_FINAL.pdf -> [국가:Africa, 카테고리:Policy]
+   👉 로드 성공: Policy Brief- Climate policy impact assessment.pdf -> [국가:Global, 카테고리:Climate]
+   ❌ 로드 실패 (2019-10-09-klima-massnahmen-data.pdf): cryptography>=3.1 is required for AES algorithm
+   👉 로드 성공: Climate technologies for agrifood systems transformation.pdf -> [국가:Global, 카테고리:Agriculture]
+   👉 로드 성공: France Emission Reduction.pdf -> [국가:France, 카테고리:Climate]
+🔄 로컬 임베딩 모델 로드 중 (처음엔 다운로드로 시간이 걸릴 수 있음)...
+✅ 총 1001 페이지, 12개 문서 로드 완료. RAG 준비 끝!
