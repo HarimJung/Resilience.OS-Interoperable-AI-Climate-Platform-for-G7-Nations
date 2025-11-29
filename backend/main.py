@@ -23,7 +23,7 @@ app.add_middleware(
 )
 
 # ★★★ 여기에 구글 API 키를 입력하세요 ★★★
-os.environ["GOOGLE_API_KEY"] = "AIzaSyAhJ5ZXG8vnnkECvkuXk6mlCrYh5OCY3VQ"
+os.environ["GOOGLE_API_KEY"] = "AIzaSyCCNnKlAaCCMRdh_OETXbdEMLmCrBLR52g"
 
 # 전역 변수
 vectorstore = None
@@ -162,12 +162,14 @@ class ChatRequest(BaseModel):
     query: str
     country: str = "Global"
     scenario: str = "General"
+    language: str = "en"      # en, ko, fr, de
 
 class InsightRequest(BaseModel):
     """AI Strategic Briefing용 인사이트 요청"""
     country: str = "Canada"
     scenario: str = "Health"  # Agri, Energy, Supply, Health
     weather_data: dict = {}   # 현재 기상 데이터
+    language: str = "en"      # en, ko, fr, de
 
 # [새로운 핵심 API] AI-Driven Insight 생성
 @app.post("/insight")
@@ -176,6 +178,15 @@ def generate_insight(req: InsightRequest):
     현재 기상 데이터 + RAG 문서 검색 → LLM이 정책 인사이트 생성
     """
     global vectorstore
+    
+    # 언어별 설정
+    LANG_CONFIG = {
+        "en": {"name": "English", "respond_in": "Respond entirely in English."},
+        "ko": {"name": "한국어", "respond_in": "모든 응답을 한국어로 작성하세요."},
+        "fr": {"name": "Français", "respond_in": "Répondez entièrement en français."},
+        "de": {"name": "Deutsch", "respond_in": "Antworten Sie vollständig auf Deutsch."}
+    }
+    lang_cfg = LANG_CONFIG.get(req.language, LANG_CONFIG["en"])
     
     if not vectorstore:
         return {
@@ -218,9 +229,9 @@ def generate_insight(req: InsightRequest):
     config = scenario_config.get(req.scenario, scenario_config["Health"])
     weather = req.weather_data or {}
     
-    # RAG 검색 실행
+    # RAG 검색 실행 - 더 많은 문서 검색
     search_kwargs = {
-        "k": 5,
+        "k": 8,  # 더 많은 문서 검색
         "filter": {
             "$or": [
                 {"country": req.country},
@@ -234,48 +245,121 @@ def generate_insight(req: InsightRequest):
         retriever = vectorstore.as_retriever(search_kwargs=search_kwargs)
         relevant_docs = retriever.get_relevant_documents(config["search_query"])
         
-        # 문서 내용 추출
-        context_text = "\n\n---\n\n".join([
-            f"[출처: {doc.metadata.get('source', 'Unknown')}]\n{doc.page_content[:800]}"
-            for doc in relevant_docs[:4]
-        ])
+        # 🔥 Deep RAG: 페이지, 섹션 정보를 포함한 정밀 컨텍스트 구축
+        detailed_citations = []
+        context_text = ""
+        
+        for idx, doc in enumerate(relevant_docs[:6]):
+            source = doc.metadata.get('source', 'Unknown')
+            page = doc.metadata.get('page', 'N/A')
+            content = doc.page_content[:1000]
+            
+            # 섹션/헤딩 추출 시도 (문서 내 구조 파악)
+            lines = content.split('\n')
+            section_hint = ""
+            for line in lines[:5]:
+                if any(kw in line.lower() for kw in ['chapter', 'section', 'article', '조', '장', '항', 'teil', 'chapitre']):
+                    section_hint = line.strip()[:80]
+                    break
+            
+            citation = {
+                "doc_id": idx + 1,
+                "source": source,
+                "page": page,
+                "section": section_hint or "Main Content",
+                "excerpt": content[:300] + "..." if len(content) > 300 else content
+            }
+            detailed_citations.append(citation)
+            
+            context_text += f"""
+[Document {idx+1}]
+- Source: {source}
+- Page: {page}
+- Section: {section_hint or 'N/A'}
+- Content:
+{content}
+
+---
+"""
         
         sources = list(set([doc.metadata.get('source', 'Unknown') for doc in relevant_docs]))
         
         # LLM으로 인사이트 생성 (gemini-2.0-flash 사용)
         llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
         
-        prompt = f"""당신은 G7 기후 정책 분석 AI입니다.
+        # 🔥 Chain of Thought 프롬프트 - 추론 과정을 명시적으로 요청
+        prompt = f"""You are a G7 climate policy analysis AI with deep expertise.
+{lang_cfg['respond_in']}
 
-## 현재 상황
-- 국가: {req.country}
-- 분석 시나리오: {req.scenario} ({config['focus']})
-- 현재 기상 데이터: 
-  * 체감온도: {weather.get('feelTemp', 'N/A')}°C
-  * 실제온도: {weather.get('realTemp', 'N/A')}°C
-  * 토양수분: {(weather.get('soilMoisture', 0.3) * 100):.1f}%
-  * 강수량: {weather.get('rain', 0)}mm
-  * 태양복사량: {weather.get('solarRad', 0)} MJ/m²
-  * 돌풍: {weather.get('gust', 0)} km/h
-  * 적설량: {weather.get('snow', 0)}cm
+## Current Situation
+- Country: {req.country}
+- Analysis Scenario: {req.scenario} ({config['focus']})
+- Current Weather Data: 
+  * Apparent Temp: {weather.get('feelTemp', 'N/A')}°C
+  * Actual Temp: {weather.get('realTemp', 'N/A')}°C
+  * Soil Moisture: {(weather.get('soilMoisture', 0.3) * 100):.1f}%
+  * Precipitation: {weather.get('rain', 0)}mm
+  * Solar Radiation: {weather.get('solarRad', 0)} MJ/m²
+  * Wind Gusts: {weather.get('gust', 0)} km/h
+  * Snowfall: {weather.get('snow', 0)}cm
 
-## 참고 정책 문서 (RAG 검색 결과)
+## Reference Policy Documents (with page numbers)
 {context_text}
 
-## 요청
-위 정책 문서들을 바탕으로, 현재 {req.country}의 기상 상황에 대한 **정책적 인사이트**를 제공하세요.
+## CRITICAL INSTRUCTIONS
+1. **Micro-Citation Required**: When referencing a policy, you MUST cite the exact document SOURCE FILENAME, page, and section. Example: "According to 'Canada Emission Reduction Plan.pdf', Page 15, Section 3.2..."
+2. **Chain of Thought Required**: Show your reasoning step by step. Explain WHY you reached your conclusion.
+3. **IMPORTANT**: Always include the FULL source filename in citations, not just document numbers.
+4. {lang_cfg['respond_in']}
 
-다음 형식으로 JSON 응답하세요:
+## Response Format (JSON only):
 {{
-  "status": "ALERT 또는 CAUTION 또는 STABLE 또는 OPTIMAL",
-  "headline": "핵심 인사이트 한 줄 (한국어)",
-  "analysis": "현재 기상 데이터와 정책 문서를 연결한 분석 (3-4문장, 한국어)",
-  "action": "권고 조치 (한국어)",
-  "key_points": ["핵심 포인트 1", "핵심 포인트 2", "핵심 포인트 3"],
-  "policy_relevance": "어떤 정책 문서가 왜 관련 있는지 설명 (한국어)"
+  "status": "ALERT or CAUTION or STABLE or OPTIMAL",
+  "headline": "One-line key insight in {lang_cfg['name']}",
+  
+  "reasoning_chain": [
+    {{
+      "step": 1,
+      "type": "DATA_OBSERVATION",
+      "content": "Observation about current weather data (e.g., 'Soil moisture is at 20.6%, which is below the typical threshold of 30%')"
+    }},
+    {{
+      "step": 2,
+      "type": "POLICY_LOOKUP",
+      "content": "What the policy document says - MUST mention the actual document filename",
+      "citation": {{"doc_id": 3, "page": "42", "section": "4.1", "source": "Canada Emission Reduction Plan.pdf"}}
+    }},
+    {{
+      "step": 3,
+      "type": "INFERENCE",
+      "content": "Logical inference connecting data and policy (e.g., 'Since current moisture (20.6%) < threshold (25%), drought protocol should be activated')"
+    }},
+    {{
+      "step": 4,
+      "type": "CONCLUSION",
+      "content": "Final conclusion with recommended action"
+    }}
+  ],
+  
+  "micro_citations": [
+    {{
+      "doc_id": 1,
+      "source": "filename.pdf",
+      "page": "15",
+      "section": "Section 3.2",
+      "quote": "Exact quote or paraphrase from the document (max 100 chars)",
+      "relevance": "Why this citation matters for current situation"
+    }}
+  ],
+  
+  "analysis": "Detailed analysis connecting weather data and policy documents (3-4 sentences, in {lang_cfg['name']})",
+  "action": "Specific recommended action in {lang_cfg['name']}",
+  "key_points": ["Key point 1", "Key point 2", "Key point 3"],
+  "confidence_score": 0.85,
+  "policy_relevance": "Which policy document is most relevant and why (in {lang_cfg['name']})"
 }}
 
-JSON만 출력하세요. 다른 텍스트 없이.
+Output ONLY valid JSON. No markdown, no explanations, just the JSON object.
 """
         
         response = llm.invoke(prompt)
@@ -296,9 +380,12 @@ JSON만 출력하세요. 다른 텍스트 없이.
                 "analysis": response_text[:300],
                 "action": "모니터링 지속",
                 "key_points": [],
-                "policy_relevance": ""
+                "policy_relevance": "",
+                "reasoning_chain": [],
+                "micro_citations": []
             }
         
+        # 🔥 Deep RAG 응답 - Chain of Thought + Micro-Citation 포함
         return {
             "signal": config["signal_format"](weather),
             "status": insight_data.get("status", "STABLE"),
@@ -307,20 +394,37 @@ JSON만 출력하세요. 다른 텍스트 없이.
             "action": insight_data.get("action", ""),
             "key_points": insight_data.get("key_points", []),
             "policy_relevance": insight_data.get("policy_relevance", ""),
+            
+            # 🆕 Chain of Thought - AI 추론 과정
+            "reasoning_chain": insight_data.get("reasoning_chain", []),
+            
+            # 🆕 Micro-Citations - 정밀 인용
+            "micro_citations": insight_data.get("micro_citations", []),
+            
+            # 🆕 신뢰도 점수
+            "confidence_score": insight_data.get("confidence_score", 0.7),
+            
+            # 기존 필드
             "sources": sources,
+            "detailed_citations": detailed_citations,  # 원본 문서 정보
             "scenario": req.scenario,
             "country": req.country
         }
         
     except Exception as e:
         print(f"Insight generation error: {e}")
+        import traceback
+        traceback.print_exc()
         return {
             "signal": config["signal_format"](weather),
             "status": "ERROR",
-            "headline": "분석 중 오류 발생",
+            "headline": "Analysis error occurred",
             "analysis": str(e),
-            "action": "시스템 확인 필요",
+            "action": "System check required",
             "key_points": [],
+            "reasoning_chain": [],
+            "micro_citations": [],
+            "confidence_score": 0,
             "sources": [],
             "scenario": req.scenario,
             "country": req.country
@@ -349,20 +453,31 @@ def chat(req: ChatRequest):
         }
     }
     
+    # 언어별 설정
+    LANG_CONFIG = {
+        "en": {"name": "English", "respond_in": "Respond entirely in English."},
+        "ko": {"name": "한국어", "respond_in": "모든 응답을 한국어로 작성하세요."},
+        "fr": {"name": "Français", "respond_in": "Répondez entièrement en français."},
+        "de": {"name": "Deutsch", "respond_in": "Antworten Sie vollständig auf Deutsch."}
+    }
+    lang_cfg = LANG_CONFIG.get(req.language, LANG_CONFIG["en"])
+    
     llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
     
-    # 프롬프트: 한국어로 전문적인 답변 유도
+    # 프롬프트: 선택된 언어로 전문적인 답변 유도
     template = f"""
-    당신은 G7 정책 보좌관입니다.
-    현재 '{req.country}' 국가의 '{req.scenario}' 시나리오를 분석 중입니다.
-    제공된 문맥(Context)을 바탕으로 질문에 대해 한국어로 명확하게 답변하세요.
-    문맥에 없는 내용은 지어내지 말고 모른다고 하세요.
+    You are a G7 policy advisor.
+    Currently analyzing the '{req.scenario}' scenario for '{req.country}'.
+    {lang_cfg['respond_in']}
+    
+    Based on the provided Context, answer the question clearly in {lang_cfg['name']}.
+    If the information is not in the context, say you don't know. Don't make things up.
     
     Context: {{context}}
     
     Question: {{question}}
     
-    Answer (Korean):
+    Answer (in {lang_cfg['name']}):
     """
     PROMPT = PromptTemplate.from_template(template)
 
