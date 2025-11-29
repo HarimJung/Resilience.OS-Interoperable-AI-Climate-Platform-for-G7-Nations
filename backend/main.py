@@ -23,7 +23,7 @@ app.add_middleware(
 )
 
 # ★★★ 여기에 구글 API 키를 입력하세요 ★★★
-os.environ["GOOGLE_API_KEY"] = "AIzaSyCCNnKlAaCCMRdh_OETXbdEMLmCrBLR52g"
+os.environ["GOOGLE_API_KEY"] = "Your Key"
 
 # 전역 변수
 vectorstore = None
