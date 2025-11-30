@@ -76,3 +76,52 @@ graph TD
     D -->|Context| E;
     E -->|Chain of Thought| F[AI Strategic Briefing];
     F -->|JSON Output| G[Frontend Dashboard];
+```
+
+Tech Stack
+
+Frontend: React.js, Tableau Embedded Analytics
+
+Backend: Python, FastAPI
+
+AI Engine: LangChain, OpenAI (GPT-4o), FAISS (Vector DB)
+
+Infrastructure: Docker, Kubernetes (Containerized for On-Premise)
+
+🚀 Getting Started (Deployment)
+Resilience.OS is designed to be containerized for secure, local deployment within government servers.
+
+Prerequisites
+
+Docker & Docker Compose
+
+Access to local Data Lake API (or use provided mock data)
+
+OpenAI API Key (or local LLM endpoint)
+
+Installation
+
+Bash
+# 1. Clone the repository
+git clone [https://github.com/HarimJung/Resilience.OS.git](https://github.com/HarimJung/Resilience.OS.git)
+cd Resilience.OS
+
+# 2. Configure Environment Variables
+cp .env.example .env
+# Edit .env to add your API keys and Data Source URLs
+
+# 3. Build and Run via Docker
+docker-compose up --build
+Access the dashboard at http://localhost:3000.
+
+🛡️ Security & Privacy (Privacy by Design)
+Non-Intrusive: No write access to legacy systems.
+
+Local Execution: RAG architecture ensures sensitive data is processed within the container boundary.
+
+Auditable: All AI actions require human authorization ("Human-in-the-Loop").
+
+🤝 Contribution & License
+This project is a non-profit contribution by VisualClimate.org to the G7 GovAI Grand Challenge. We believe in open collaboration to tackle the climate crisis.
+
+License: MIT License - Free for any G7 nation to fork, modify, and deploy.
