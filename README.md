@@ -78,7 +78,8 @@ graph TD
     F -->|JSON Output| G[Frontend Dashboard];
 ```
 
-Tech Stack
+
+# Tech Stack
 
 Frontend: React.js, Tableau Embedded Analytics
 
