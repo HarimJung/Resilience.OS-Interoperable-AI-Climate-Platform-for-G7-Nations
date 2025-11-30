@@ -1,13 +1,13 @@
 # Resilience.OS: Interoperable AI Climate Platform for G7 Nations
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![G7 GovAI Challenge](https://img.shields.io/badge/G7_GovAI-Grand_Challenge-blue)](https://impact.canada.ca/en/challenges/g7-govai)
-[![Status](https://img.shields.io/badge/Status-Prototype_Ready-success)]()
+[![Stack](https://img.shields.io/badge/Tech-FastAPI%20%7C%20React%20%7C%20Gemini-blue)](https://fastapi.tiangolo.com/)
+[![Status](https://img.shields.io/badge/Status-Live_Prototype-success)]()
 [![Organization](https://img.shields.io/badge/Organization-VisualClimate.org-purple)](https://visualclimate.org)
 
-> **"From Data to Action: An Open-Source AI Contribution to the G7"**
+> **"From Data to Action: An Open-Source, Privacy-First AI Contribution to the G7"**
 
-Resilience.OS is a jurisdiction-agnostic, AI-driven intelligence platform designed to operationalize climate data for public servants across G7 nations. By bridging the gap between raw telemetry and policy execution, it enables proactive, data-driven governance.
+Resilience.OS is a jurisdiction-agnostic, AI-driven intelligence platform designed to operationalize climate data for public servants across G7 nations. It integrates **Real-time Telemetry (Open-Meteo)** with **Local RAG Inference** to provide secure, explainable policy insights.
 
 ---
 
@@ -18,111 +18,97 @@ Watch the full demonstration of Resilience.OS in action.
 
 ---
 
-## 🌍 The Problem & Solution
+## 🌍 Key Technical Innovations
 
-### The Challenge
-Climate change is borderless, yet government data remains siloed. Public servants struggle to translate complex environmental models into immediate, responsible actions due to a lack of interoperability and trust in "black box" AI.
+### 1. Privacy-First "Local" RAG Architecture Unlike typical AI wrappers, Resilience.OS prioritizes Data Sovereignty.
+* **Local Embeddings:** We use `HuggingFaceEmbeddings (all-MiniLM-L6-v2)` running locally. Your sensitive government documents are vectorized on-premise, **never sent to external APIs** for embedding.
+* **Vector Store:** Uses `ChromaDB` for high-performance, local document retrieval.
 
-### Our Solution
-**Resilience.OS** is a **"Whole-of-Government"** platform that unifies diverse data streams—Agri-Food, Energy, and Supply Chain—into a standardized framework usable by any G7 nation.
+### 2. Neuro-Symbolic "Chain of Thought" Engine
+The system does not just "guess". As seen in `backend/main.py`, we utilize a **Structured Prompting** technique that forces the AI to output a JSON Logic Chain:
+1.  **Data Observation:** Ingests live data from `Open-Meteo API`.
+2.  **Policy Lookup:** Semantic search via ChromaDB.
+3.  **Inference & Conclusion:** Synthesizes facts into actions.
 
-* **Interoperable:** Seamlessly adapts to local data lakes and languages (e.g., Canada ↔ Germany).
-* **Explainable:** Features a transparent "AI Reasoning Chain" to eliminate hallucinations.
-* **Secure:** RAG architecture ensures data sovereignty; no data leaves the local infrastructure.
-
----
-
-## 📸 Key Features
-
-### 1. Unified Command Center
-A centralized dashboard integrating real-time telemetry (via Tableau) with AI-driven insights. It provides a holistic view of climate risks across sectors like Agriculture and Supply Chain.
-
-> **[Insert Image Here: Screenshot 2025-11-29 at 11.53.06 PM.jpg]**
-*(The main dashboard view showing Soil Moisture, Precip, and Carbon Clock)*
-
-### 2. AI Strategic Briefing & Reasoning Chain
-Unlike opaque black-box models, Resilience.OS employs a **Neuro-Symbolic architecture**. It visibly displays the logic behind every recommendation:
-1.  **Data Observation**
-2.  **Policy Lookup**
-3.  **Inference**
-4.  **Conclusion**
-
-> **[Insert Image Here: Screenshot 2025-11-29 at 11.53.26 PM.jpg]**
-*(The AI Strategic Briefing showing the reasoning steps and micro-citations)*
-
-### 3. Mandatory Micro-Citations
-To ensure accountability, every AI insight is strictly grounded in official government documents. The system cites specific pages of uploaded PDFs (NDCs, Legislation), ensuring full auditability.
-
-> **[Insert Image Here: Screenshot 2025-11-29 at 11.53.32 PM.jpg]**
-*(Close up of the Micro-Citations section)*
-
-### 4. Dynamic Policy Library
-A "No-Code" knowledge base where governments can upload their unique regulatory frameworks (PDFs). The system instantly ingests these documents to customize its reasoning engine for the specific jurisdiction.
-
-> **[Insert Image Here: Screenshot 2025-11-29 at 11.53.36 PM.jpg]**
-*(The Policy Library view with PDF documents)*
+### 3. Real-Time G7 Data Interoperability
+The frontend (`App.jsx`) is connected to the **Open-Meteo Historical & Forecast API**.
+* Fetches live Soil Moisture, Solar Radiation, and Wind Gusts based on coordinates (Toronto, Berlin, Paris).
+* Demonstrates instant adaptability to different G7 geolocations without manual reconfiguration.
 
 ---
 
-## ⚙️ System Architecture & Data Flow
+## 📸 System Features
 
-Resilience.OS acts as a non-intrusive intelligent overlay on top of existing government infrastructure.
+### Unified Command Center
+Integrates live sensor data visualization with AI analysis.
+> **[Insert Dashboard Screenshot Here]**
+
+### AI Strategic Briefing (Reasoning Chain)
+Displays the step-by-step logic and mandatory **Micro-Citations** linking back to specific PDF pages (e.g., "Canada Emission Reduction Plan, p.59").
+> **[Insert Reasoning Chain Screenshot Here]**
+
+### Dynamic Policy Library
+A "No-Code" knowledge base. Public servants can simply drop PDF files into the `/data` folder. The system auto-tags them by Country (Canada/Germany/France) and Category (Agri/Energy) based on filenames.
+> **[Insert Library Screenshot Here]**
+
+---
+
+## ⚙️ Tech Stack & Architecture
+
+Resilience.OS acts as a non-intrusive intelligent overlay.
 
 ```mermaid
 graph TD
-    A[Gov Data Lake / Sensors] -->|REST API| B(Resilience.OS Backend);
-    C[Policy Library (PDFs)] -->|Ingestion| D[Vector Store (FAISS)];
-    B -->|Query| E[RAG Agent];
-    D -->|Context| E;
-    E -->|Chain of Thought| F[AI Strategic Briefing];
-    F -->|JSON Output| G[Frontend Dashboard];
+    A[Open-Meteo API] -->|Real-time JSON| B(React Frontend);
+    C[PDF Documents] -->|PyPDFLoader| D[Local ChromaDB];
+    D -->|Context| E[FastAPI Backend];
+    B -->|User Query| E;
+    E -->|Gemini 2.0 Flash| F[Reasoning Engine];
+    F -->|Structured JSON| B;
 ```
 
 
-# Tech Stack
+Frontend: React.js, Tailwind CSS, Lucide Icons, Recharts
 
-Frontend: React.js, Tableau Embedded Analytics
+Backend: Python FastAPI, Uvicorn
 
-Backend: Python, FastAPI
+AI & RAG: LangChain, Google Gemini 2.0 Flash, ChromaDB
 
-AI Engine: LangChain, OpenAI (GPT-4o), FAISS (Vector DB)
+Embeddings: HuggingFace all-MiniLM-L6-v2 (Local execution)
 
-Infrastructure: Docker, Kubernetes (Containerized for On-Premise)
+Data Source: Open-Meteo API (Weather/Soil/Marine data)
 
-🚀 Getting Started (Deployment)
-Resilience.OS is designed to be containerized for secure, local deployment within government servers.
+🚀 Getting Started (Run Locally)
+This repository contains the full source code submitted to the G7 GovAI Grand Challenge.
 
 Prerequisites
 
-Docker & Docker Compose
+Python 3.9+
 
-Access to local Data Lake API (or use provided mock data)
+Node.js 18+
 
-OpenAI API Key (or local LLM endpoint)
+Google Gemini API Key
 
-Installation
+1. Backend Setup (FastAPI)
 
 Bash
-# 1. Clone the repository
-git clone [https://github.com/HarimJung/Resilience.OS.git](https://github.com/HarimJung/Resilience.OS.git)
-cd Resilience.OS
+cd backend
+pip install -r requirements.txt
+# Add your PDF documents to the /data folder
+# Create .env file with GOOGLE_API_KEY
+python main.py
+# Server runs at [http://0.0.0.0:8000](http://0.0.0.0:8000)
+2. Frontend Setup (React)
 
-# 2. Configure Environment Variables
-cp .env.example .env
-# Edit .env to add your API keys and Data Source URLs
+Bash
+cd frontend
+npm install
+npm run dev
+# App runs at http://localhost:5173
+🛡️ Security & Data Protection
+No External Training: Documents are processed via RAG (Retrieval-Augmented Generation) and are not used to train the base LLM.
 
-# 3. Build and Run via Docker
-docker-compose up --build
-Access the dashboard at http://localhost:3000.
+On-Premise Embeddings: Vectorization happens locally, ensuring document contents do not leave the secure perimeter during the indexing phase.
 
-🛡️ Security & Privacy (Privacy by Design)
-Non-Intrusive: No write access to legacy systems.
-
-Local Execution: RAG architecture ensures sensitive data is processed within the container boundary.
-
-Auditable: All AI actions require human authorization ("Human-in-the-Loop").
-
-🤝 Contribution & License
-This project is a non-profit contribution by VisualClimate.org to the G7 GovAI Grand Challenge. We believe in open collaboration to tackle the climate crisis.
-
-License: MIT License - Free for any G7 nation to fork, modify, and deploy.
+🤝 Contribution
+This project is a non-profit contribution by VisualClimate.org. License: MIT License - Free for any G7 nation to fork and deploy.
