@@ -110,10 +110,9 @@ No External Training: Documents are processed via RAG (Retrieval-Augmented Gener
 
 On-Premise Embeddings: Vectorization happens locally, ensuring document contents do not leave the secure perimeter during the indexing phase.
 
-🤝 Contribution<img width="1054" height="1034" alt="Screenshot 2025-11-29 at 11 53 42 PM" src="https://github.com/user-attachments/assets/6d009bd2-9bea-43de-9c93-8b51d772c6c0" />
-<img width="1048" height="1810" alt="Screenshot 2025-11-29 at 11 53 36 PM" src="https://github.com/user-attachments/assets/e5d81ad0-a8f3-4302-b3a5-b658660bbc73" />
+🤝 Contribution
+
 <img width="1055" height="1825" alt="Screenshot 2025-11-29 at 11 53 32 PM" src="https://github.com/user-attachments/assets/3ca20a49-015f-4e17-96d7-12448bdaf32a" />
-<img width="815" height="1748" alt="Screenshot 2025-11-29 at 11 53 26 PM" src="https://github.com/user-attachments/assets/2193086a-334a-4a4b-b402-509aeeee1059" />
 <img width="1375" height="1266" alt="Screenshot 2025-11-29 at 11 53 13 PM" src="https://github.com/user-attachments/assets/3d69d2a3-157f-4efb-8682-1338e089a95c" />
 <img width="1274" height="683" alt="Screenshot 2025-11-29 at 11 53 06 PM" src="https://github.com/user-attachments/assets/ee323337-296f-4dd8-99d1-08df8a00aa3e" />
 
