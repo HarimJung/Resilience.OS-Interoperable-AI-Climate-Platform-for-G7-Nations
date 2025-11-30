@@ -68,7 +68,7 @@ A "No-Code" knowledge base where governments can upload their unique regulatory 
 
 Resilience.OS acts as a non-intrusive intelligent overlay on top of existing government infrastructure.
 
-```mermaid
+
 graph TD
     A[Gov Data Lake / Sensors] -->|REST API| B(Resilience.OS Backend);
     C[Policy Library (PDFs)] -->|Ingestion| D[Vector Store (FAISS)];
